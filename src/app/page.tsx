@@ -78,7 +78,7 @@ export default function HomePage() {
             </div>
             <h3 className="text-xl font-semibold mb-3">文件共享</h3>
             <p className="text-gray-600">
-              上传和分享各种文件，支持文本预览和实时同步，最大支持10MB文件。
+              上传和分享各种文件，支持文本预览和实时同步，最大支持 1GB 文件。
             </p>
           </div>
         </div>
