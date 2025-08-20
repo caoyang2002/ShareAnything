@@ -223,7 +223,7 @@ export default function FileManager({
                 </button>
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                支持最大 10MB 的文件
+                支持最大 1GB 的文件
               </p>
             </div>
           )}
