@@ -78,11 +78,11 @@ services:
   shared-code-editor:
     image: your-dockerhub-username/shared-code-editor:latest
     ports:
-      - "3000:3000"
-      - "8080:8080"
+      - "3446:3456"
+      - "3457:3457"
     environment:
       - NODE_ENV=production
-      - WEBSOCKET_PORT=8080
+      - WEBSOCKET_PORT=3457
       - WEBSOCKET_HOST=0.0.0.0
     restart: unless-stopped
 ```
@@ -109,10 +109,10 @@ docker pull your-dockerhub-username/shared-code-editor:latest
 ```bash
 docker run -d \\
   --name shared-code-editor \\
-  -p 3000:3000 \\
-  -p 8080:8080 \\
+  -p 3456:3456 \\
+  -p 3457:3457 \\
   -e NODE_ENV=production \\
-  -e WEBSOCKET_PORT=8080 \\
+  -e WEBSOCKET_PORT=3457 \\
   -e WEBSOCKET_HOST=0.0.0.0 \\
   --restart unless-stopped \\
   your-dockerhub-username/shared-code-editor:latest

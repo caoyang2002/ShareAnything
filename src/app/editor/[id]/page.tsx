@@ -46,7 +46,7 @@ export default function EditorPage() {
     if (!currentUser) return;
 
     const connectWebSocket = () => {
-      const websocket = new WebSocket('ws://localhost:8080');
+      const websocket = new WebSocket('ws://localhost:3457');
       
       websocket.onopen = () => {
         setIsConnected(true);

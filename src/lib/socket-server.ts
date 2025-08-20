@@ -7,7 +7,7 @@ let wss: WebSocketServer | null = null;
 export function initializeWebSocketServer() {
   if (wss) return wss;
 
-  wss = new WebSocketServer({ port: 8080 });
+  wss = new WebSocketServer({ port: 3457 });
 
   wss.on('connection', (ws) => {
     let currentSessionId: string | null = null;
