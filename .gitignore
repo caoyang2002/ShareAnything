@@ -15,8 +15,8 @@ build/
 out/
 
 # 环境文件
-.env
-.env.*
+# .env
+# .env.*
 
 # IDE 配置
 .idea/

@@ -46,7 +46,10 @@ export default function EditorPage() {
     if (!currentUser) return;
 
     const connectWebSocket = () => {
-      const websocket = new WebSocket('ws://192.168.5.101:3457'); // 修改这个 ip
+      const ip = process.env.NEXT_PUBLIC_WS_IP
+      const port =  process.env.NEXT_PUBLIC_WS_PORT
+      console.log(ip)
+      const websocket = new WebSocket(`ws://${ip}:${port}`); // 修改这个 ip
       
       
       websocket.onopen = () => {
@@ -74,9 +77,9 @@ export default function EditorPage() {
       websocket.onclose = () => {
         setIsConnected(false);
         setWs(null);
-        
+        const web_port:number = Number(process.env.NEXT_PUBLIC_WEB_PORT)
         // 尝试重连
-        setTimeout(connectWebSocket,3456);
+        setTimeout(connectWebSocket,web_port);
       };
 
       websocket.onerror = (error) => {
