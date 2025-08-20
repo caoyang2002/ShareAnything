@@ -37,7 +37,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # 构建应用
-RUN pnpm build
+RUN pnpm next build
 
 # 运行阶段
 FROM base AS runner
@@ -59,6 +59,4 @@ USER nextjs
 EXPOSE 3000 8080
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-# CMD ["node", "server.js"]
-
-CMD ["pnpm", "start"]
+CMD ["node", "server.js"]

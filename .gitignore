@@ -52,5 +52,5 @@ coverage/
 # 包管理器
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+# pnpm-lock.yaml
 

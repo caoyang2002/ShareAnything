@@ -1,7 +1,16 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  output: 'standalone',
+  experimental: {
+    serverComponentsExternalPackages: ['ws'],
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('ws')
+    }
+    return config
+  },
+}
 
-export default nextConfig;
+export default nextConfig
