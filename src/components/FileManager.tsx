@@ -81,8 +81,8 @@ export default function FileManager({
   };
 
   const processFile = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { // 10MB 限制
-      alert('文件大小不能超过 10MB');
+    if (file.size > 1024 * 1024 * 1024) { // 1GB 限制
+      alert('文件大小不能超过 1GB');
       return;
     }
 
