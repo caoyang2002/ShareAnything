@@ -22,6 +22,11 @@ npm run build
 ```bash
 # 构建镜像
 docker build -t share-anything .
+
+# 
+docker pull registry.cn-hangzhou.aliyuncs.com/library/node:22-alpine
+docker tag registry.cn-hangzhou.aliyuncs.com/library/node:22-alpine node:22-alpine
+
 ```
 
 ## 查看镜像
@@ -56,9 +61,15 @@ docker tag shared-code-editor your-dockerhub-username/shared-code-editor:v1.0.0
 ```
 
 # 3. 推送镜像
+
+```bash
 docker push your-dockerhub-username/shared-code-editor:latest
 docker push your-dockerhub-username/shared-code-editor:v1.0.0
+```
+
 9. 生产环境部署
+
+```bash
 使用 Docker Compose 部署
 bash# 在服务器上创建 docker-compose.yml
 version: '3.8'
@@ -74,17 +85,28 @@ services:
       - WEBSOCKET_PORT=8080
       - WEBSOCKET_HOST=0.0.0.0
     restart: unless-stopped
+```
 
 # 启动服务
+
+```bash
 docker-compose up -d
+```
 
 # 查看日志
-docker-compose logs -f
-使用 Docker 直接部署
-bash# 拉取镜像
-docker pull your-dockerhub-username/shared-code-editor:latest
 
+```bash
+docker-compose logs -f
+```
+
+使用 Docker 直接部署
+
+```bash
+# 拉取镜像
+docker pull your-dockerhub-username/shared-code-editor:latest
+```
 # 运行容器
+```bash
 docker run -d \\
   --name shared-code-editor \\
   -p 3000:3000 \\
@@ -167,14 +189,17 @@ NODE_ENV=production
 WEBSOCKET_PORT=8080
 WEBSOCKET_HOST=0.0.0.0
 NEXT_TELEMETRY_DISABLED=1
+```
+
 🔧 故障排除
+
 常见问题
 
 WebSocket 连接失败
 
 检查防火墙设置，确保 8080 端口开放
-验证 WebSocket URL 配置是否正确
 
+验证 WebSocket URL 配置是否正确
 
 构建失败
 
@@ -185,6 +210,7 @@ WebSocket 连接失败
 端口冲突
 
 更改端口映射：
+
 ```bash
 -p 3001:3000 -p 8081:8080
 ```

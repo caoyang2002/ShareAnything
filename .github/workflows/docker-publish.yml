@@ -18,7 +18,7 @@ on:
 env:
   # Docker Hub 仓库名称（替换为你的用户名/仓库名）
   REGISTRY: docker.io
-  IMAGE_NAME: your-dockerhub-username/share-anything
+  IMAGE_NAME: caoyang2002/share-anything
 
 jobs:
   build:
