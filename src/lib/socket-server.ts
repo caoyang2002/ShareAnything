@@ -1,6 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { storage } from './storage';
-import { SocketMessage, User } from '@/types';
+import { SocketMessage } from '@/types';
 
 let wss: WebSocketServer | null = null;
 

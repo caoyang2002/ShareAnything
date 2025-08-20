@@ -1,3 +1,4 @@
+// @typescript-eslint/no-explicit-any
 export function generateRandomName(): string {
   const adjectives = ['快速', '聪明', '创新', '高效', '专注', '灵活'];
   const nouns = ['开发者', '程序员', '工程师', '编码者', '创造者', '构建者'];
@@ -17,6 +18,7 @@ export function generateUserColor(): string {
   
   return colors[Math.floor(Math.random() * colors.length)];
 }
+
 
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
