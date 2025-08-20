@@ -5,7 +5,7 @@ import '@/styles/globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: '共享代码编辑器',
+  title: '同步共享编辑器',
   description: '实时协作的代码编辑器，支持多人同时编辑和分享',
 };
 

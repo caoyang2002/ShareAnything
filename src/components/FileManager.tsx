@@ -1,17 +1,12 @@
+// components/FileManager.tsx - 更新版本（解决变量重复问题）
 'use client';
 
 import { useState, useRef } from 'react';
 import { SharedFile } from '@/types';
-import { 
-  Upload, 
-  Download, 
-  Trash2, 
-  File, 
-  Image, 
-  FileText, 
-  Code,
-  Eye,
-  X
+import FilePreviewModal from './FilePreviewModal';
+import { FILE_TYPES } from '@/types/fileTypes';
+import {
+  Upload, Download, Trash2, Eye, AlertTriangle
 } from 'lucide-react';
 
 interface FileManagerProps {
@@ -21,19 +16,6 @@ interface FileManagerProps {
   currentUserId: string;
 }
 
-const TEXT_FILE_EXTENSIONS = [
-  '.txt', '.md', '.json', '.xml', '.csv', '.log', '.ini', '.cfg'
-];
-
-const CODE_FILE_EXTENSIONS = [
-  '.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.cpp', '.c', '.h', 
-  '.cs', '.go', '.rs', '.php', '.rb', '.swift', '.kt', '.scala', '.r'
-];
-
-const IMAGE_FILE_EXTENSIONS = [
-  '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.ico'
-];
-
 export default function FileManager({ 
   files, 
   onFileUpload, 
@@ -42,36 +24,92 @@ export default function FileManager({
 }: FileManagerProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [previewFile, setPreviewFile] = useState<SharedFile | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [previewingFile, setPreviewingFile] = useState<SharedFile | null>(null); // 重命名变量
+  const [selectedCategory, setSelectedCategory] = useState<string>('全部');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const getFileIcon = (fileName: string) => {
+  // 🔍 获取文件类型信息
+  const getFileTypeInfo = (fileName: string) => {
     const ext = '.' + fileName.split('.').pop()?.toLowerCase();
     
-    if (IMAGE_FILE_EXTENSIONS.includes(ext)) {
-      return <Image className="w-5 h-5 text-blue-500" />;
-    } else if (CODE_FILE_EXTENSIONS.includes(ext)) {
-      return <Code className="w-5 h-5 text-green-500" />;
-    } else if (TEXT_FILE_EXTENSIONS.includes(ext)) {
-      return <FileText className="w-5 h-5 text-yellow-500" />;
-    } else {
-      return <File className="w-5 h-5 text-gray-500" />;
+    for (const [typeKey, config] of Object.entries(FILE_TYPES)) {
+      if (config.extensions.includes(ext)) {
+        return { typeKey, ...config };
+      }
     }
+    
+    return {
+      typeKey: 'unknown',
+      extensions: [ext],
+      icon: 'File',
+      color: 'text-gray-500',
+      category: '其他',
+      canPreview: true, // 默认允许预览（至少可以显示十六进制）
+      isTextBased: false,
+      maxSize: 100
+    };
   };
 
-  const isTextFile = (fileName: string): boolean => {
-    const ext = '.' + fileName.split('.').pop()?.toLowerCase();
-    return TEXT_FILE_EXTENSIONS.includes(ext) || CODE_FILE_EXTENSIONS.includes(ext);
+  // 🎨 获取文件图标
+  const getFileIcon = (fileName: string) => {
+    const typeInfo = getFileTypeInfo(fileName);
+    // 简化图标逻辑，使用 Lucide 图标
+    const iconMap: Record<string, any> = {
+      'File': '📄',
+      'Image': '🖼️',
+      'Code': '💻',
+      'Music': '🎵',
+      'Video': '🎬',
+      'Archive': '🗜️',
+      'Database': '🗄️',
+      'Shield': '🔐',
+      'Settings': '⚙️',
+      'Zap': '⚡',
+      'Book': '📚',
+      'Gamepad2': '🎮',
+      'Globe': '🌐',
+      'Palette': '🎨',
+      'Sheet': '📊',
+      'Presentation': '📈'
+    };
+    
+    return (
+      <span className="text-lg">
+        {iconMap[typeInfo.icon] || '📄'}
+      </span>
+    );
   };
 
+  // 📏 格式化文件大小
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // 🔒 安全的 Base64 编码
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          const base64 = reader.result.split(',')[1];
+          resolve(base64);
+        } else {
+          reject(new Error('FileReader result is not a string'));
+        }
+      };
+      
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // 📂 处理文件选择
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
     if (selectedFiles) {
@@ -80,23 +118,35 @@ export default function FileManager({
     event.target.value = '';
   };
 
+  // ⚙️ 处理文件
   const processFile = async (file: File) => {
-    if (file.size > 1024 * 1024 * 1024) { // 1GB 限制
-      alert('文件大小不能超过 1GB');
+    const typeInfo = getFileTypeInfo(file.name);
+    const maxSizeBytes = (typeInfo.maxSize || 100) * 1024 * 1024;
+    
+    if (file.size > maxSizeBytes) {
+      alert(`${typeInfo.category}文件大小不能超过 ${typeInfo.maxSize}MB`);
       return;
     }
 
+    if (typeInfo.warning) {
+      const confirmed = confirm(
+        `警告：${typeInfo.warning}\n\n文件：${file.name}\n类型：${typeInfo.category}\n大小：${formatFileSize(file.size)}\n\n确定要上传吗？`
+      );
+      if (!confirmed) return;
+    }
+
     setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      const isText = isTextFile(file.name);
       let content: string;
 
-      if (isText) {
+      if (typeInfo.isTextBased) {
         content = await file.text();
+        setUploadProgress(50);
       } else {
-        const buffer = await file.arrayBuffer();
-        content = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        content = await fileToBase64(file);
+        setUploadProgress(50);
       }
 
       const sharedFile: SharedFile = {
@@ -107,22 +157,29 @@ export default function FileManager({
         content,
         uploadedBy: currentUserId,
         uploadedAt: new Date(),
-        isTextFile: isText,
+        isTextFile: typeInfo.isTextBased,
+        category: typeInfo.category,
+        canPreview: true, // 所有文件都支持某种形式的预览
+        fileTypeInfo: typeInfo
       };
 
-      onFileUpload(sharedFile);
+      setUploadProgress(80);
+      await onFileUpload(sharedFile);
+      setUploadProgress(100);
+      
     } catch (error) {
       console.error('文件处理失败:', error);
-      alert('文件上传失败，请重试');
+      alert(`文件上传失败: ${error instanceof Error ? error.message : '未知错误'}`);
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
+  // 🎯 拖拽处理
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     setIsDragOver(false);
-
     const droppedFiles = event.dataTransfer.files;
     if (droppedFiles) {
       Array.from(droppedFiles).forEach(processFile);
@@ -139,6 +196,7 @@ export default function FileManager({
     setIsDragOver(false);
   };
 
+  // 📥 下载文件
   const downloadFile = (file: SharedFile) => {
     try {
       let blob: Blob;
@@ -148,9 +206,11 @@ export default function FileManager({
       } else {
         const binaryString = atob(file.content);
         const bytes = new Uint8Array(binaryString.length);
+        
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
+        
         blob = new Blob([bytes], { type: file.type });
       }
 
@@ -168,25 +228,42 @@ export default function FileManager({
     }
   };
 
-  const previewTextFile = (file: SharedFile) => {
-    if (file.isTextFile) {
-      setPreviewFile(file);
-    }
-  };
+  // 🏷️ 获取所有分类
+  const categories = ['全部', ...new Set(files.map(f => f.category || '其他'))];
 
-  const closePreview = () => {
-    setPreviewFile(null);
-  };
+  // 🔍 过滤文件
+  const filteredFiles = selectedCategory === '全部' 
+    ? files 
+    : files.filter(f => (f.category || '其他') === selectedCategory);
 
   return (
     <>
       <div className="bg-white rounded-lg shadow-md p-4">
+        {/* 🎯 分类筛选 */}
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2">
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  selectedCategory === category
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Upload className="w-5 h-5" />
-          文件管理 ({files.length})
+          增强文件管理器 ({filteredFiles.length}/{files.length})
         </h3>
 
-        {/* 上传区域 */}
+        {/* 📤 上传区域 */}
         <div
           className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors mb-4 ${
             isDragOver
@@ -208,7 +285,15 @@ export default function FileManager({
           {isUploading ? (
             <div className="text-blue-600">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              上传中...
+              <div className="text-sm">上传中... {uploadProgress}%</div>
+              {uploadProgress > 0 && (
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-gray-600">
@@ -223,107 +308,87 @@ export default function FileManager({
                 </button>
               </p>
               <p className="text-xs text-gray-400 mt-1">
-                支持最大 1GB 的文件
+                支持文本、二进制、十六进制等多种预览模式
               </p>
             </div>
           )}
         </div>
 
-        {/* 文件列表 */}
-        <div className="space-y-2 max-h-60 overflow-y-auto">
-          {files.length === 0 ? (
+        {/* 📋 文件列表 */}
+        <div className="space-y-2 max-h-80 overflow-y-auto">
+          {filteredFiles.length === 0 ? (
             <p className="text-gray-500 text-sm text-center py-4">
-              还没有上传任何文件
+              {selectedCategory === '全部' ? '还没有上传任何文件' : `没有找到${selectedCategory}类型的文件`}
             </p>
           ) : (
-            files.map((file) => (
-              <div
-                key={file.id}
-                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
-              >
-                {getFileIcon(file.name)}
-                
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {file.name}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {formatFileSize(file.size)} • {new Date(file.uploadedAt).toLocaleString()}
-                  </p>
-                </div>
+            filteredFiles.map((file) => {
+              const typeInfo = getFileTypeInfo(file.name);
+              return (
+                <div
+                  key={file.id}
+                  className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {getFileIcon(file.name)}
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {file.name}
+                      </p>
+                      {typeInfo.warning && (
+                        <span title={typeInfo.warning}>
+                          <AlertTriangle className="w-4 h-4 text-red-500" />
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <span className={`px-2 py-1 rounded-full bg-gray-100 ${typeInfo.color}`}>
+                        {file.category || typeInfo.category}
+                      </span>
+                      <span>{formatFileSize(file.size)}</span>
+                      <span>•</span>
+                      <span>{new Date(file.uploadedAt).toLocaleString()}</span>
+                    </div>
+                  </div>
 
-                <div className="flex items-center gap-1">
-                  {file.isTextFile && (
+                  <div className="flex items-center gap-1">
                     <button
-                      onClick={() => previewTextFile(file)}
+                      onClick={() => setPreviewingFile(file)} // 使用新的变量名
                       className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="预览"
+                      title="高级预览"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
-                  )}
-                  
-                  <button
-                    onClick={() => downloadFile(file)}
-                    className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                    title="下载"
-                  >
-                    <Download className="w-4 h-4" />
-                  </button>
+                    
+                    <button
+                      onClick={() => downloadFile(file)}
+                      className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                      title="下载"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    onClick={() => onFileDelete(file.id)}
-                    className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                    title="删除"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                    <button
+                      onClick={() => onFileDelete(file.id)}
+                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      title="删除"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
 
-      {/* 文件预览模态框 */}
-      {previewFile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] w-full flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold truncate">
-                {previewFile.name}
-              </h3>
-              <button
-                onClick={closePreview}
-                className="p-1 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-auto p-4">
-              <pre className="text-sm bg-gray-50 p-4 rounded-lg overflow-auto whitespace-pre-wrap">
-                {previewFile.content}
-              </pre>
-            </div>
-            
-            <div className="flex justify-end gap-2 p-4 border-t">
-              <button
-                onClick={() => downloadFile(previewFile)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                下载文件
-              </button>
-              <button
-                onClick={closePreview}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 🔍 高级预览模态框 */}
+      <FilePreviewModal
+        file={previewingFile}
+        onClose={() => setPreviewingFile(null)}
+        onDownload={downloadFile}
+      />
     </>
   );
 }

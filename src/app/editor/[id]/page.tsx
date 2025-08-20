@@ -201,7 +201,7 @@ export default function EditorPage() {
         {/* 头部 */}
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">共享代码编辑器</h1>
+            <h1 className="text-2xl font-bold text-gray-900">同步共享编辑器</h1>
             <p className="text-sm text-gray-600">
               会话 ID: {sessionId}
               {isConnected ? (

@@ -6,7 +6,7 @@ class MemoryStorage {
   createSession(id: string, language: string = 'javascript'): CodeSession {
     const session: CodeSession = {
       id,
-      content: `// 欢迎使用共享代码编辑器！
+      content: `// 欢迎使用同步共享编辑器！
 // 分享这个链接让其他人加入协作
 // 你也可以上传和分享文件
 

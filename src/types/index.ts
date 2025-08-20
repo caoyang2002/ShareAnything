@@ -13,10 +13,13 @@ export interface SharedFile {
   name: string;
   type: string;
   size: number;
-  content: string; // Base64 encoded for binary files, plain text for text files
+  content: string;
   uploadedBy: string;
   uploadedAt: Date;
   isTextFile: boolean;
+  category?: string;
+  canPreview?: boolean;
+  fileTypeInfo?: any;
 }
 
 export interface CodeSession {

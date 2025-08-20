@@ -26,7 +26,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            共享代码编辑器
+            同步共享编辑器
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             创建共享代码会话，与团队成员实时协作编程。支持多种编程语言，实时同步，文件共享，无需注册。
