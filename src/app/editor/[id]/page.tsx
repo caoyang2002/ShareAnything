@@ -75,7 +75,7 @@ export default function EditorPage() {
         setWs(null);
         
         // 尝试重连
-        setTimeout(connectWebSocket, 3000);
+        setTimeout(connectWebSocket,3456);
       };
 
       websocket.onerror = (error) => {
