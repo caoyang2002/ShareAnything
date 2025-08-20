@@ -37,7 +37,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # 构建应用
-RUN pnpm next build
+RUN pnpm build
 
 # 运行阶段
 FROM base AS runner
