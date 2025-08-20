@@ -46,7 +46,8 @@ export default function EditorPage() {
     if (!currentUser) return;
 
     const connectWebSocket = () => {
-      const websocket = new WebSocket('ws://localhost:3457');
+      const websocket = new WebSocket('ws://192.168.5.101:3457'); // 修改这个 ip
+      
       
       websocket.onopen = () => {
         setIsConnected(true);
