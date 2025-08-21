@@ -47,9 +47,16 @@ export default function EditorPage() {
     if (!currentUser) return;
 
     const connectWebSocket = () => {
-      const ip = process.env.NEXT_PUBLIC_HOST_IP
-      const port = process.env.NEXT_PUBLIC_WS_PORT
-      console.log(ip)
+      if (process.env.NODE_ENV == 'production'){
+        console.log("Prod")
+         if (process.env.SERVER_IP == null) return;
+         if(process.env.WEB_PORT == null) return;
+         if(process.env.WS_PORT == null) return;
+      }
+      const ip = process.env.SERVER_IP || process.env.NEXT_PUBLIC_HOST_IP;
+      console.log("server ip:",ip);
+      const port = process.env.WS_PORT || process.env.NEXT_PUBLIC_WS_PORT
+      console.log("ws port:",port)
       const websocket = new WebSocket(`ws://${ip}:${port}`); // 修改这个 ip
       
       

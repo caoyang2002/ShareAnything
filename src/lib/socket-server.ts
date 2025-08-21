@@ -6,11 +6,22 @@ let wss: WebSocketServer | null = null;
 
 export function initializeWebSocketServer() {
   if (wss) return wss;
-console.log(process.env.WS_PORT)
-const ws_port: number =  Number(process.env.NEXT_PUBLIC_WS_PORT);
+  if (process.env.NODE_ENV == 'production') {
+    if (process.env.SERVER_IP == null || process.env.WEB_PORT == null || process.env.WS_PORT == null) {
+      return;
+    }
+  }
+  const ip = process.env.SERVER_IP || process.env.NEXT_PUBLIC_HOST_IP;
+  console.log("server ip:", ip);
+  const port = process.env.WS_PORT || process.env.NEXT_PUBLIC_WS_PORT
+  console.log("ws port:", port)
 
-wss = new WebSocketServer({ port: ws_port });
-console.log('ws-port:',ws_port)
+
+
+  const ws_port: number = Number(port);
+
+  wss = new WebSocketServer({ port: ws_port });
+  console.log('ws-port:', ws_port)
 
   wss.on('connection', (ws) => {
     let currentSessionId: string | null = null;
@@ -117,7 +128,7 @@ console.log('ws-port:',ws_port)
       if (!message.sessionId || !message.file) return;
 
       storage.addFile(message.sessionId, message.file);
-      
+
       // 广播文件上传给所有用户
       const files = storage.getFiles(message.sessionId);
       broadcastToSession(message.sessionId, {
@@ -131,7 +142,7 @@ console.log('ws-port:',ws_port)
       if (!message.sessionId || !message.fileId) return;
 
       storage.removeFile(message.sessionId, message.fileId);
-      
+
       // 广播文件删除给所有用户
       const files = storage.getFiles(message.sessionId);
       broadcastToSession(message.sessionId, {
@@ -154,7 +165,7 @@ function broadcastToSession(sessionId: string, message: SocketMessage, excludeWs
   if (!wss) return;
 
   const messageStr = JSON.stringify(message);
-  
+
   wss.clients.forEach((client) => {
     if (client !== excludeWs && client.readyState === client.OPEN) {
       // 这里需要根据实际情况判断客户端是否属于该会话
