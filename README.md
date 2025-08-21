@@ -1,4 +1,5 @@
 # Share Anything 📤
+[ZH](./doc/README_zh.md)
 
 ![GitHub](https://img.shields.io/github/license/caoyang2002/ShareAnything)
 ![GitHub stars](https://img.shields.io/github/stars/caoyang2002/ShareAnything)
@@ -58,7 +59,7 @@ pnpm run dev
 5. 👥 Collaborate in real-time!
 
 
-## Docker
+## 🐳 Docker
 
 ```bash
 docker pull caoyang2002/share-anything:latest

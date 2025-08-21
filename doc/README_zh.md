@@ -56,7 +56,7 @@ pnpm run dev
 4. 🔗 将生成的链接发送给协作者  
 5. 👥 实时开始协作！
 
-## docker
+## 🐳 Docker
 
 ```bash
 docker pull caoyang2002/share-anything:latest
