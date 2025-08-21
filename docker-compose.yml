@@ -11,9 +11,8 @@ services:
       - "3457:3457"
     environment:
       - NODE_ENV=production
-      - WEB_PORT=3456
-      - WS_PORT=3457
-      - HOSTNAME=0.0.0.0
+      - WEBSOCKET_PORT=3457
+      - WEBSOCKET_HOST=0.0.0.0
     restart: unless-stopped
     container_name: share-anything 
     

@@ -6,6 +6,7 @@ let wss: WebSocketServer | null = null;
 
 export function initializeWebSocketServer() {
   if (wss) return wss;
+console.log(process.env.WS_PORT)
 const ws_port: number = Number(process.env.WS_PORT) || Number(process.env.NEXT_PUBLIC_WS_PORT);
 
 wss = new WebSocketServer({ port: ws_port });
