@@ -1,8 +1,6 @@
 # Dockerfile
-# 使用官方 Node.js 22 Alpine 镜像作为基础
+# 使用官方 Node.js 24 Alpine 镜像作为基础
 FROM node:24-alpine AS base
-
-
 
 # 安装 pnpm
 RUN npm install -g pnpm
@@ -43,11 +41,8 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
 # 创建用户
-RUN addgroup --system --gid 1001 nodejs
+RUN addgroup --system --gid 1001 nodejsgit 
 RUN adduser --system --uid 1001 nextjs
 
 # 复制构建产物
@@ -57,6 +52,7 @@ COPY --from=builder /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 3456 3457
-ENV PORT=3456
+ENV WEB_PORT=3456
+ENV WS_PORT=3457
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]

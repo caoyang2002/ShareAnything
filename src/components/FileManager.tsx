@@ -260,7 +260,7 @@ export default function FileManager({
 
         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Upload className="w-5 h-5" />
-          增强文件管理器 ({filteredFiles.length}/{files.length})
+          文件管理器 ({filteredFiles.length}/{files.length})
         </h3>
 
         {/* 📤 上传区域 */}

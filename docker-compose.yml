@@ -2,7 +2,7 @@
 version: '3.8'
 
 services:
-  shared-code-editor:
+  share-anything:
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,8 +11,9 @@ services:
       - "3457:3457"
     environment:
       - NODE_ENV=production
-      - WEBSOCKET_PORT=3457
-      - WEBSOCKET_HOST=0.0.0.0
+      - WEB_PORT=3456
+      - WS_PORT=3457
+      - HOSTNAME=0.0.0.0
     restart: unless-stopped
-    container_name: shared-code-editor
+    container_name: share-anything 
     

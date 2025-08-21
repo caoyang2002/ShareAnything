@@ -8,6 +8,7 @@ import UserList from '@/components/UserList';
 import ShareButton from '@/components/ShareButton';
 import FileManager from '@/components/FileManager';
 import { User, SocketMessage, SharedFile } from '@/types';
+import { projectHmrEvents } from 'next/dist/build/swc/generated-native';
 
 const USER_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
@@ -46,8 +47,8 @@ export default function EditorPage() {
     if (!currentUser) return;
 
     const connectWebSocket = () => {
-      const ip = process.env.NEXT_PUBLIC_WS_IP
-      const port =  process.env.NEXT_PUBLIC_WS_PORT
+      const ip = process.env.HOSTNAME || process.env.NEXT_PUBLIC_WS_IP
+      const port = process.env.WS_PORT || process.env.NEXT_PUBLIC_WS_PORT
       console.log(ip)
       const websocket = new WebSocket(`ws://${ip}:${port}`); // 修改这个 ip
       
@@ -77,7 +78,8 @@ export default function EditorPage() {
       websocket.onclose = () => {
         setIsConnected(false);
         setWs(null);
-        const web_port:number = Number(process.env.NEXT_PUBLIC_WEB_PORT)
+   
+        const web_port:number = Number(process.env.WEB_PORT) || Number(process.env.NEXT_PUBLIC_WEB_PORT) 
         // 尝试重连
         setTimeout(connectWebSocket,web_port);
       };
