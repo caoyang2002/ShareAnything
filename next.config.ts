@@ -3,17 +3,17 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   output: 'standalone',
   
-   publicRuntimeConfig: {
-    // 客户端可访问的配置
-    serverIP: process.env.SERVER_IP || 'localhost',
-    webPort: process.env.WEB_PORT || '3456',
-    wsPort: process.env.WS_PORT || '3457',
-  },
-   env: {
-    SERVER_IP: process.env.SERVER_IP || 'localhost',
-    WEB_PORT: process.env.WEB_PORT || '3456',
-    WS_PORT: process.env.WS_PORT || '3457',
-  },
+  //  publicRuntimeConfig: {
+  //   // 客户端可访问的配置
+  //   serverIP: process.env.SERVER_IP || 'localhost',
+  //   webPort: process.env.WEB_PORT || '3456',
+  //   wsPort: process.env.WS_PORT || '3457',
+  // },
+  //  env: {
+  //   SERVER_IP: process.env.SERVER_IP || 'localhost',
+  //   WEB_PORT: process.env.WEB_PORT || '3456',
+  //   WS_PORT: process.env.WS_PORT || '3457',
+  // },
   experimental: {
     // serverComponentsExternalPackages: ['ws', 'react-pdf'], // 添加 react-pdf
   },
