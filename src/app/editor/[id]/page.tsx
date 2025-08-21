@@ -47,7 +47,7 @@ export default function EditorPage() {
     if (!currentUser) return;
 
     const connectWebSocket = () => {
-      const ip = process.env.HOST_IP || process.env.NEXT_PUBLIC_HOST_IP
+      const ip = process.env.NEXT_PUBLIC_HOST_IP
       const port = process.env.WS_PORT || process.env.NEXT_PUBLIC_WS_PORT
       console.log(ip)
       const websocket = new WebSocket(`ws://${ip}:${port}`); // 修改这个 ip
