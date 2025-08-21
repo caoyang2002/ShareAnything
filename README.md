@@ -1,5 +1,5 @@
 # Share Anything 📤
-[ZH](./doc/README_zh.md)
+[中文](./doc/README_zh.md)
 
 ![GitHub](https://img.shields.io/github/license/caoyang2002/ShareAnything)
 ![GitHub stars](https://img.shields.io/github/stars/caoyang2002/ShareAnything)
@@ -79,11 +79,6 @@ src/
 ├── types/              # TypeScript type definitions
 └── utils/              # Helper functions
 ```
-
-
-## 📜 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 👏 Acknowledgments
 
