@@ -18,13 +18,6 @@
 docker buildx build -t share-anythng:latest .
 ```
 
-
-```bash
-
-```
-
-
-
 # 步骤 1: 准备项目
 
 ## 克隆或准备项目
