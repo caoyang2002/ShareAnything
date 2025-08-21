@@ -1,5 +1,12 @@
 # 使用方法
 
+# docker
+
+```bash
+docker buildx build -t share-anythng:latest .
+```
+
+
 ```bash
 
 ```

@@ -11,14 +11,14 @@ import { User, SocketMessage, SharedFile } from '@/types';
 import { projectHmrEvents } from 'next/dist/build/swc/generated-native';
 
 const USER_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
   '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD'
 ];
 
 export default function EditorPage() {
   const params = useParams();
   const sessionId = params.id as string;
-  
+
   const [content, setContent] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [files, setFiles] = useState<SharedFile[]>([]);
@@ -32,13 +32,13 @@ export default function EditorPage() {
     const userId = uuidv4();
     const userName = `用户${Math.floor(Math.random() * 1000)}`;
     const userColor = USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)];
-    
+
     const user: User = {
       id: userId,
       name: userName,
       color: userColor,
     };
-    
+
     setCurrentUser(user);
   }, []);
 
@@ -47,23 +47,35 @@ export default function EditorPage() {
     if (!currentUser) return;
 
     const connectWebSocket = () => {
-      if (process.env.NODE_ENV == 'production'){
-        console.log("Prod")
-         if (process.env.SERVER_IP == null) return;
-         if(process.env.WEB_PORT == null) return;
-         if(process.env.WS_PORT == null) return;
+      if (process.env.NODE_ENV == 'production') {
+        console.log("[Editor page] 配置生产模式端口中")
+        if (process.env.SERVER_IP === undefined) {
+          console.log("SERVER_IP 未配置: ",process.env.SERVER_IP)
+          return ;
+        }
+        if (process.env.WEB_PORT === undefined){
+          console.log("WEB_PORT 未配置")
+          return;
+        }
+        if (process.env.WS_PORT === undefined){
+          console.log("ES_PORT 未配置")
+          return;
+        }
       }
-      const ip = process.env.SERVER_IP || process.env.NEXT_PUBLIC_HOST_IP;
-      console.log("server ip:",ip);
+      
+      const ip = process.env.CLIENT_SERVER_IP || process.env.NEXT_PUBLIC_HOST_IP;
+      console.log("SERCER IP:", ip);
       const port = process.env.WS_PORT || process.env.NEXT_PUBLIC_WS_PORT
-      console.log("ws port:",port)
+      console.log("WS PORT:", port)
+      console.log("[Editor page] 配置完成")
+
       const websocket = new WebSocket(`ws://${ip}:${port}`); // 修改这个 ip
-      
-      
+
+
       websocket.onopen = () => {
         setIsConnected(true);
         setWs(websocket);
-        
+
         // 加入会话
         const joinMessage: SocketMessage = {
           type: 'join',
@@ -85,10 +97,10 @@ export default function EditorPage() {
       websocket.onclose = () => {
         setIsConnected(false);
         setWs(null);
-   
-        const web_port:number = Number(process.env.NEXT_PUBLIC_WEB_PORT) 
+
+        const web_port: number = Number(process.env.NEXT_PUBLIC_WEB_PORT)
         // 尝试重连
-        setTimeout(connectWebSocket,web_port);
+        setTimeout(connectWebSocket, web_port);
       };
 
       websocket.onerror = (error) => {
@@ -133,8 +145,8 @@ export default function EditorPage() {
         break;
       case 'cursor-change':
         if (message.userId && message.cursor) {
-          setUsers(prev => prev.map(user => 
-            user.id === message.userId 
+          setUsers(prev => prev.map(user =>
+            user.id === message.userId
               ? { ...user, cursor: message.cursor }
               : user
           ));
@@ -150,7 +162,7 @@ export default function EditorPage() {
 
   const handleContentChange = useCallback((newContent: string) => {
     setContent(newContent);
-    
+
     if (ws && isConnected) {
       const message: SocketMessage = {
         type: 'content-change',
@@ -220,7 +232,7 @@ export default function EditorPage() {
               )}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <select
               value={language}
@@ -257,9 +269,9 @@ export default function EditorPage() {
           {/* 侧边栏 */}
           <div className="col-span-4 space-y-4 overflow-y-auto">
             <ShareButton sessionId={sessionId} />
-            <UserList 
-              users={[currentUser, ...users]} 
-              currentUserId={currentUser.id} 
+            <UserList
+              users={[currentUser, ...users]}
+              currentUserId={currentUser.id}
             />
             <FileManager
               files={files}

@@ -1,63 +1,46 @@
-# Dockerfile
-# 使用官方 Node.js 24 Alpine 镜像作为基础
-FROM node:24-alpine AS base
+# 构建阶段
+FROM node:24-alpine AS builder
+WORKDIR /app
 
 # 安装 pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@latest
 
-# 设置 pnpm 国内源
-# RUN pnpm config set registry https://registry.npmmirror.com/
-
-# 依赖安装阶段
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-# 复制 package.json 和 pnpm-lock.yaml
+# 复制依赖文件
 COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# 安装生产依赖
-RUN pnpm install --frozen-lockfile --prod
-
-# 构建阶段
-FROM base AS builder
-WORKDIR /app
-
-# 复制依赖
-COPY --from=deps /app/node_modules ./node_modules
+# 复制源码并构建
 COPY . .
-
-# 安装所有依赖
-RUN pnpm install --frozen-lockfile
-
-# 设置环境变量
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
-
-# 构建应用
 RUN pnpm build
 
-# 运行阶段
-FROM base AS runner
+# 运行阶段 - 使用更小的基础镜像
+FROM node:24-alpine AS runner
 WORKDIR /app
 
+# 安装运行时依赖
+RUN apk add --no-cache tini && rm -rf /var/cache/apk/*
 
 # 创建用户
-RUN addgroup --system --gid 1001 nodejsgit 
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs --ingroup nodejs
 
-# 复制构建产物
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# 只复制必要的文件
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 3456 3457
-# server.js
-ENV PORT=3456 
+
+ENV PORT=3456
 ENV HOSTNAME="0.0.0.0"
-# client
-ENV SERVER_IP="192.168.0.1"
-ENV WEB_PORT=3456
+ENV SERVER_IP="localhost"
 ENV WS_PORT=3457
+ENV WEB_PORT=$PORT
+
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "server.js"]
+
+

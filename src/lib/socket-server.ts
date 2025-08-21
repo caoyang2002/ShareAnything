@@ -7,21 +7,20 @@ let wss: WebSocketServer | null = null;
 export function initializeWebSocketServer() {
   if (wss) return wss;
   if (process.env.NODE_ENV == 'production') {
-    if (process.env.SERVER_IP == null || process.env.WEB_PORT == null || process.env.WS_PORT == null) {
+     console.log("[Socket Server] 生产模式")
+    if (process.env.SERVER_IP === undefined || process.env.WEB_PORT === undefined || process.env.WS_PORT === undefined) {
+      console.log("[Socket Server] 配置错误")
       return;
     }
   }
   const ip = process.env.SERVER_IP || process.env.NEXT_PUBLIC_HOST_IP;
-  console.log("server ip:", ip);
+  console.log("SERVER IP:", ip);
   const port = process.env.WS_PORT || process.env.NEXT_PUBLIC_WS_PORT
-  console.log("ws port:", port)
-
-
-
+  console.log("WS PORT:", port)
   const ws_port: number = Number(port);
 
   wss = new WebSocketServer({ port: ws_port });
-  console.log('ws-port:', ws_port)
+  
 
   wss.on('connection', (ws) => {
     let currentSessionId: string | null = null;
