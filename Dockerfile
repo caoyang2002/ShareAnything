@@ -41,6 +41,7 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app
 
+
 # 创建用户
 RUN addgroup --system --gid 1001 nodejsgit 
 RUN adduser --system --uid 1001 nextjs
@@ -52,6 +53,9 @@ COPY --from=builder /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 3456 3457
-ENV PORT=3456
+# server.js
+ENV PORT=3456 
 ENV HOSTNAME="0.0.0.0"
+# client
+ENV CLIENT_HOST="192.168.0.1"
 CMD ["node", "server.js"]
