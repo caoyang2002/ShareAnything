@@ -63,7 +63,7 @@ export default function EditorPage() {
         }
       }
       
-      const ip = process.env.CLIENT_SERVER_IP || process.env.NEXT_PUBLIC_HOST_IP;
+      const ip = process.env.SERVER_IP || process.env.NEXT_PUBLIC_HOST_IP;
       console.log("SERCER IP:", ip);
       const port = process.env.WS_PORT || process.env.NEXT_PUBLIC_WS_PORT
       console.log("WS PORT:", port)
