@@ -1,21 +1,22 @@
 import { WebSocketServer } from 'ws';
 import { storage } from './storage';
 import { SocketMessage } from '@/types';
+import { exit } from 'process';
 
 let wss: WebSocketServer | null = null;
 
 export function initializeWebSocketServer() {
   if (wss) return wss;
+  // 检查环境变量
   if (process.env.NODE_ENV == 'production') {
      console.log("[Socket Server] 生产模式")
-    if (process.env.NEXT_PUBLIC_SERVER_IP === undefined || process.env.NEXT_PUBLIC_WEB_PORT === undefined || process.env.NEXT_PUBLIC_WS_PORT === undefined) {
+    if (process.env.NEXT_PUBLIC_WS_PORT === undefined) {
       console.log("[Socket Server] 配置错误")
       return;
     }
   }
-  const ip = process.env.NEXT_PUBLIC_SERVER_IP;
-  console.log("SERVER IP:", ip);
-  const port = process.env.WS_PORT || process.env.NEXT_PUBLIC_WS_PORT
+  
+  const port = process.env.NEXT_PUBLIC_WS_PORT
   console.log("WS PORT:", port)
   const ws_port: number = Number(port);
 

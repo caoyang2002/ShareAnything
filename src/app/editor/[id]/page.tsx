@@ -47,23 +47,26 @@ export default function EditorPage() {
     if (!currentUser) return;
 
     const connectWebSocket = () => {
-      if (process.env.NODE_ENV == 'production') {
-        console.log("[Editor page] 配置生产模式端口中")
-        if (process.env.NEXT_PUBLIC_SERVER_IP === undefined) {
-          console.log("SERVER_IP 未配置: ",process.env.NEXT_PUBLIC_SERVER_IP)
-          return ;
-        }
-        if (process.env.NEXT_PUBLIC_WEB_PORT === undefined){
-          console.log("WEB_PORT 未配置")
-          return;
-        }
-        if (process.env.NEXT_PUBLIC_WS_PORT === undefined){
-          console.log("ES_PORT 未配置")
-          return;
-        }
-      }
-      
-      const ip = process.env.NEXT_PUBLIC_SERVER_IP;
+      // if (process.env.NODE_ENV == 'production') {
+      //   console.log("[Editor page] 配置生产模式端口中")
+      //   if (process.env.NEXT_PUBLIC_SERVER_IP === undefined) {
+      //     console.log("SERVER_IP 未配置: ",process.env.NEXT_PUBLIC_SERVER_IP)
+      //     return ;
+      //   }
+      //   if (process.env.NEXT_PUBLIC_WEB_PORT === undefined){
+      //     console.log("WEB_PORT 未配置")
+      //     return;
+      //   }
+      //   if (process.env.NEXT_PUBLIC_WS_PORT === undefined){
+      //     console.log("ES_PORT 未配置")
+      //     return;
+      //   }
+      // }
+      const ip = window.location.hostname
+      // const port = window.location.port
+
+
+      // const ip = process.env.NEXT_PUBLIC_SERVER_IP;
       console.log("SERCER IP:", ip);
       const port = process.env.NEXT_PUBLIC_WS_PORT;
       console.log("WS PORT:", port)
