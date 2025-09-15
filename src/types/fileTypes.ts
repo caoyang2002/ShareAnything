@@ -85,7 +85,7 @@ export const FILE_TYPES: Record<string, FileTypeConfig> = {
     category: '视频',
     canPreview: false,
     isTextBased: false,
-    maxSize: 500
+    maxSize: 2048
   },
   
   // 🗜️ 压缩文件
