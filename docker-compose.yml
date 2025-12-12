@@ -1,5 +1,5 @@
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
   share-anything:
@@ -12,7 +12,6 @@ services:
     environment:
       - NODE_ENV=production
       - WEBSOCKET_PORT=3457
-      - WEBSOCKET_HOST=0.0.0.0
+      - WEBSOCKET_HOST=localhost
     restart: unless-stopped
-    container_name: share-anything 
-    
+    container_name: share-anything

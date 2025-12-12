@@ -1,37 +1,44 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
-import { v4 as uuidv4 } from 'uuid';
-import CodeEditor from '@/components/CodeEditor';
-import UserList from '@/components/UserList';
-import ShareButton from '@/components/ShareButton';
-import FileManager from '@/components/FileManager';
-import { User, SocketMessage, SharedFile } from '@/types';
-import { projectHmrEvents } from 'next/dist/build/swc/generated-native';
+import { useEffect, useState, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
+import CodeEditor from "@/components/CodeEditor";
+import UserList from "@/components/UserList";
+import ShareButton from "@/components/ShareButton";
+import FileManager from "@/components/FileManager";
+import { User, SocketMessage, SharedFile } from "@/types";
+import { projectHmrEvents } from "next/dist/build/swc/generated-native";
 
 const USER_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-  '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD'
+  "#FF6B6B",
+  "#4ECDC4",
+  "#45B7D1",
+  "#96CEB4",
+  "#FECA57",
+  "#FF9FF3",
+  "#54A0FF",
+  "#5F27CD",
 ];
 
 export default function EditorPage() {
   const params = useParams();
   const sessionId = params.id as string;
 
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [files, setFiles] = useState<SharedFile[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [language, setLanguage] = useState('javascript');
+  const [language, setLanguage] = useState("javascript");
 
   // 初始化用户
   useEffect(() => {
     const userId = uuidv4();
     const userName = `用户${Math.floor(Math.random() * 1000)}`;
-    const userColor = USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)];
+    const userColor =
+      USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)];
 
     const user: User = {
       id: userId,
@@ -62,18 +69,16 @@ export default function EditorPage() {
       //     return;
       //   }
       // }
-      const ip = window.location.hostname
+      const ip = window.location.hostname;
       // const port = window.location.port
 
-
       // const ip = process.env.NEXT_PUBLIC_SERVER_IP;
-      console.log("SERCER IP:", ip);
+      console.log("Server IP:", ip);
       const port = process.env.NEXT_PUBLIC_WS_PORT;
-      console.log("WS PORT:", port)
-      console.log("[Editor page] 配置完成")
+      console.log("Web Socket PORT:", port);
+      console.log("[Editor page] 配置完成");
 
       const websocket = new WebSocket(`ws://${ip}:${port}`); // 修改这个 ip
-
 
       websocket.onopen = () => {
         setIsConnected(true);
@@ -81,7 +86,7 @@ export default function EditorPage() {
 
         // 加入会话
         const joinMessage: SocketMessage = {
-          type: 'join',
+          type: "join",
           sessionId,
           user: currentUser,
         };
@@ -93,7 +98,7 @@ export default function EditorPage() {
           const message: SocketMessage = JSON.parse(event.data);
           handleWebSocketMessage(message);
         } catch (error) {
-          console.error('Error parsing message:', error);
+          console.error("Error parsing message:", error);
         }
       };
 
@@ -101,13 +106,13 @@ export default function EditorPage() {
         setIsConnected(false);
         setWs(null);
 
-        const web_port: number = Number(process.env.NEXT_PUBLIC_WEB_PORT)
+        const web_port: number = Number(process.env.NEXT_PUBLIC_WEB_PORT);
         // 尝试重连
         setTimeout(connectWebSocket, web_port);
       };
 
       websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error("WebSocket error:", error);
       };
     };
 
@@ -116,7 +121,7 @@ export default function EditorPage() {
     return () => {
       if (ws) {
         const leaveMessage: SocketMessage = {
-          type: 'leave',
+          type: "leave",
           sessionId,
           userId: currentUser.id,
         };
@@ -128,34 +133,36 @@ export default function EditorPage() {
 
   const handleWebSocketMessage = (message: SocketMessage) => {
     switch (message.type) {
-      case 'content-change':
+      case "content-change":
         if (message.content !== undefined) {
           setContent(message.content);
         }
         break;
-      case 'user-update':
+      case "user-update":
         if (message.user) {
-          setUsers(prev => {
-            const filtered = prev.filter(u => u.id !== message.user!.id);
+          setUsers((prev) => {
+            const filtered = prev.filter((u) => u.id !== message.user!.id);
             return [...filtered, message.user!];
           });
         }
         break;
-      case 'leave':
+      case "leave":
         if (message.userId) {
-          setUsers(prev => prev.filter(u => u.id !== message.userId));
+          setUsers((prev) => prev.filter((u) => u.id !== message.userId));
         }
         break;
-      case 'cursor-change':
+      case "cursor-change":
         if (message.userId && message.cursor) {
-          setUsers(prev => prev.map(user =>
-            user.id === message.userId
-              ? { ...user, cursor: message.cursor }
-              : user
-          ));
+          setUsers((prev) =>
+            prev.map((user) =>
+              user.id === message.userId
+                ? { ...user, cursor: message.cursor }
+                : user
+            )
+          );
         }
         break;
-      case 'file-list-update':
+      case "file-list-update":
         if (message.files) {
           setFiles(message.files);
         }
@@ -163,60 +170,74 @@ export default function EditorPage() {
     }
   };
 
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent);
+  const handleContentChange = useCallback(
+    (newContent: string) => {
+      setContent(newContent);
 
-    if (ws && isConnected) {
-      const message: SocketMessage = {
-        type: 'content-change',
-        sessionId,
-        content: newContent,
-      };
-      ws.send(JSON.stringify(message));
-    }
-  }, [ws, isConnected, sessionId]);
+      if (ws && isConnected) {
+        const message: SocketMessage = {
+          type: "content-change",
+          sessionId,
+          content: newContent,
+        };
+        ws.send(JSON.stringify(message));
+      }
+    },
+    [ws, isConnected, sessionId]
+  );
 
-  const handleCursorChange = useCallback((line: number, column: number) => {
-    if (ws && isConnected && currentUser) {
-      const message: SocketMessage = {
-        type: 'cursor-change',
-        sessionId,
-        userId: currentUser.id,
-        cursor: { line, column },
-      };
-      ws.send(JSON.stringify(message));
-    }
-  }, [ws, isConnected, currentUser, sessionId]);
+  const handleCursorChange = useCallback(
+    (line: number, column: number) => {
+      if (ws && isConnected && currentUser) {
+        const message: SocketMessage = {
+          type: "cursor-change",
+          sessionId,
+          userId: currentUser.id,
+          cursor: { line, column },
+        };
+        ws.send(JSON.stringify(message));
+      }
+    },
+    [ws, isConnected, currentUser, sessionId]
+  );
 
-  const handleFileUpload = useCallback((file: SharedFile) => {
-    if (ws && isConnected) {
-      const message: SocketMessage = {
-        type: 'file-upload',
-        sessionId,
-        file,
-      };
-      ws.send(JSON.stringify(message));
-    }
-  }, [ws, isConnected, sessionId]);
+  const handleFileUpload = useCallback(
+    (file: SharedFile) => {
+      if (ws && isConnected) {
+        const message: SocketMessage = {
+          type: "file-upload",
+          sessionId,
+          file,
+        };
+        ws.send(JSON.stringify(message));
+      }
+    },
+    [ws, isConnected, sessionId]
+  );
 
-  const handleFileDelete = useCallback((fileId: string) => {
-    if (ws && isConnected) {
-      const message: SocketMessage = {
-        type: 'file-delete',
-        sessionId,
-        fileId,
-      };
-      ws.send(JSON.stringify(message));
-    }
-  }, [ws, isConnected, sessionId]);
+  const handleFileDelete = useCallback(
+    (fileId: string) => {
+      if (ws && isConnected) {
+        const message: SocketMessage = {
+          type: "file-delete",
+          sessionId,
+          fileId,
+        };
+        ws.send(JSON.stringify(message));
+      }
+    },
+    [ws, isConnected, sessionId]
+  );
 
   if (!currentUser) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">初始化中...</p>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">初始化中...</p>
+        </div>
       </div>
-    </div>;
+    );
   }
 
   return (
@@ -264,7 +285,7 @@ export default function EditorPage() {
               onChange={handleContentChange}
               onCursorChange={handleCursorChange}
               language={language}
-              users={users.filter(u => u.id !== currentUser.id)}
+              users={users.filter((u) => u.id !== currentUser.id)}
               readOnly={!isConnected}
             />
           </div>

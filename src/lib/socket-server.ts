@@ -1,66 +1,65 @@
-import { WebSocketServer } from 'ws';
-import { storage } from './storage';
-import { SocketMessage } from '@/types';
-import { exit } from 'process';
+import { WebSocketServer } from "ws";
+import { storage } from "./storage";
+import { SocketMessage } from "@/types";
+import { exit } from "process";
 
 let wss: WebSocketServer | null = null;
 
 export function initializeWebSocketServer() {
   if (wss) return wss;
   // 检查环境变量
-  if (process.env.NODE_ENV == 'production') {
-     console.log("[Socket Server] 生产模式")
+  if (process.env.NODE_ENV == "production") {
+    console.log("[Socket Server] 生产模式");
     if (process.env.NEXT_PUBLIC_WS_PORT === undefined) {
-      console.log("[Socket Server] 配置错误")
+      console.log("[Socket Server] 配置错误");
       return;
     }
   }
-  
-  const port = process.env.NEXT_PUBLIC_WS_PORT
-  console.log("WS PORT:", port)
+
+  const port = process.env.NEXT_PUBLIC_WS_PORT;
+  console.log("WS PORT:", port);
   const ws_port: number = Number(port);
 
   wss = new WebSocketServer({ port: ws_port });
-  
 
-  wss.on('connection', (ws) => {
+  wss.on("connection", (ws) => {
     let currentSessionId: string | null = null;
     let currentUserId: string | null = null;
 
-    ws.on('message', (data) => {
+    ws.on("message", (data) => {
       try {
         const message: SocketMessage = JSON.parse(data.toString());
 
         switch (message.type) {
-          case 'join':
+          case "join":
             handleJoin(ws, message);
             break;
-          case 'leave':
+          case "leave":
             handleLeave(message);
             break;
-          case 'content-change':
+          case "content-change":
             handleContentChange(message);
             break;
-          case 'cursor-change':
+          case "cursor-change":
             handleCursorChange(message);
             break;
-          case 'file-upload':
+          case "file-upload":
             handleFileUpload(message);
             break;
-          case 'file-delete':
+          case "file-delete":
             handleFileDelete(message);
             break;
         }
       } catch (error) {
-        console.error('Error processing message:', error);
+        console.error("Error processing message:", error);
       }
     });
 
-    ws.on('close', () => {
+    ws.on("close", () => {
       if (currentSessionId && currentUserId) {
         storage.removeUser(currentSessionId, currentUserId);
         broadcastToSession(currentSessionId, {
-          type: 'leave',
+          type: "leave",
           sessionId: currentSessionId,
           userId: currentUserId,
         });
@@ -81,26 +80,34 @@ export function initializeWebSocketServer() {
       storage.addUser(message.sessionId, message.user);
 
       // 发送当前内容给新用户
-      ws.send(JSON.stringify({
-        type: 'content-change',
-        sessionId: message.sessionId,
-        content: session.content,
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "content-change",
+          sessionId: message.sessionId,
+          content: session.content,
+        })
+      );
 
       // 发送当前文件列表给新用户
       const files = storage.getFiles(message.sessionId);
-      ws.send(JSON.stringify({
-        type: 'file-list-update',
-        sessionId: message.sessionId,
-        files: files,
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "file-list-update",
+          sessionId: message.sessionId,
+          files: files,
+        })
+      );
 
       // 广播新用户加入
-      broadcastToSession(message.sessionId, {
-        type: 'user-update',
-        sessionId: message.sessionId,
-        user: message.user,
-      }, ws);
+      broadcastToSession(
+        message.sessionId,
+        {
+          type: "user-update",
+          sessionId: message.sessionId,
+          user: message.user,
+        },
+        ws
+      );
     }
 
     function handleLeave(message: SocketMessage) {
@@ -120,7 +127,11 @@ export function initializeWebSocketServer() {
     function handleCursorChange(message: SocketMessage) {
       if (!message.sessionId || !message.userId || !message.cursor) return;
 
-      storage.updateUserCursor(message.sessionId, message.userId, message.cursor);
+      storage.updateUserCursor(
+        message.sessionId,
+        message.userId,
+        message.cursor
+      );
       broadcastToSession(message.sessionId, message, ws);
     }
 
@@ -132,7 +143,7 @@ export function initializeWebSocketServer() {
       // 广播文件上传给所有用户
       const files = storage.getFiles(message.sessionId);
       broadcastToSession(message.sessionId, {
-        type: 'file-list-update',
+        type: "file-list-update",
         sessionId: message.sessionId,
         files: files,
       });
@@ -146,7 +157,7 @@ export function initializeWebSocketServer() {
       // 广播文件删除给所有用户
       const files = storage.getFiles(message.sessionId);
       broadcastToSession(message.sessionId, {
-        type: 'file-list-update',
+        type: "file-list-update",
         sessionId: message.sessionId,
         files: files,
       });
@@ -161,7 +172,11 @@ export function initializeWebSocketServer() {
   return wss;
 }
 
-function broadcastToSession(sessionId: string, message: SocketMessage, excludeWs?: any) {
+function broadcastToSession(
+  sessionId: string,
+  message: SocketMessage,
+  excludeWs?: any
+) {
   if (!wss) return;
 
   const messageStr = JSON.stringify(message);
